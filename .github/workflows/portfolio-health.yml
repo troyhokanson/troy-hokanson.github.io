@@ -1,0 +1,63 @@
+name: Portfolio health
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "15 0,12 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: portfolio-health-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Run five-pass diagnostic
+        id: audit
+        shell: bash
+        run: |
+          set +e
+          live_flag=""
+          if [[ "${{ github.event_name }}" == "schedule" || "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            live_flag="--check-live"
+          fi
+          python scripts/portfolio_health.py --fix $live_flag --report portfolio-health-report.json
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: portfolio-health-report
+          path: portfolio-health-report.json
+      - name: Open or update diagnostic issue
+        if: steps.audit.outputs.exit_code != '0' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          title="Automated portfolio health failure"
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq '.[0].number // empty')
+          body="The twice-daily portfolio diagnostic failed in [workflow run $GITHUB_RUN_ID]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID). Review the attached report. Safe mechanical repairs may be proposed automatically; factual claims, privacy decisions, publication, and merges remain human-reviewed."
+          if [[ -n "$existing" ]]; then
+            gh issue comment "$existing" --body "$body"
+          else
+            gh issue create --title "$title" --body "$body"
+          fi
+      - name: Enforce diagnostic result
+        if: steps.audit.outputs.exit_code != '0'
+        run: exit 1

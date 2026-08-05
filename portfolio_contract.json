@@ -1,0 +1,35 @@
+{
+  "canonical_domain": "TroyHokanson.com",
+  "production_repository": "troyhokanson/troyhokanson.github.io",
+  "pages": {
+    "index.html": {
+      "required_text": [
+        "Twenty-five-year medically retired Minnesota detective",
+        "18-year Field Training Officer",
+        "18 years",
+        "$3.2M",
+        "20+",
+        "TroyHokanson@iCloud.com"
+      ]
+    },
+    "credentials.html": {
+      "required_text": [
+        "Certified Cyber Crime Investigator",
+        "Cellebrite CCLO and CCPA",
+        "98-hour supervision and management program",
+        "Supported 18 years of remote adult education"
+      ]
+    }
+  },
+  "forbidden_patterns": [
+    "(?i)POST\\s+(?:license|certification)",
+    "(?i)license\\s*(?:no\\.?|#)\\s*14790",
+    "(?i)badge\\s*(?:no\\.?|#)",
+    "(?i)(?:nine|9) years? of (?:U\\.S\\. )?Army service",
+    "(?i)19[- ]year remote",
+    "(?i)19 years? (?:of )?(?:remote )?(?:university )?(?:teaching|faculty)",
+    "(?i)(?:six|6) years?.{0,60}DCECTF",
+    "(?i)5,304\\s*(?:GB|gigabytes)",
+    "(?i)1,238(?:\\.75)?\\s*(?:hours|hrs)"
+  ]
+}
