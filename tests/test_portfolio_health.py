@@ -1,5 +1,7 @@
 import importlib.util
+import json
 from pathlib import Path
+import re
 import unittest
 
 
@@ -17,6 +19,17 @@ class PortfolioHealthTests(unittest.TestCase):
 
     def test_auto_fixer_is_idempotent(self):
         self.assertEqual(portfolio_health.apply_safe_fixes(), [])
+
+    def test_privacy_contract_uses_generic_license_detection(self):
+        contract_path = SCRIPT.parents[1] / "portfolio_contract.json"
+        source = contract_path.read_text(encoding="utf-8")
+        self.assertNotIn("14790", source)
+
+        contract = json.loads(source)
+        self.assertTrue(any(
+            re.search(pattern, "Minnesota license #12345")
+            for pattern in contract["forbidden_patterns"]
+        ))
 
 
 if __name__ == "__main__":
