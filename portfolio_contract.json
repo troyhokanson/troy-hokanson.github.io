@@ -23,7 +23,7 @@
   },
   "forbidden_patterns": [
     "(?i)POST\\s+(?:license|certification)",
-    "(?i)(?:POST\\s+)?license\\s*(?:no\\.?|number|#)\\s*\\d{4,}",
+    "(?i)(?:POST\\s+)?license\\s*(?:no\\.?|number|#)\\s*[:#-]?\\s*\\d{4,}",
     "(?i)badge\\s*(?:no\\.?|#)",
     "(?i)(?:nine|9) years? of (?:U\\.S\\. )?Army service",
     "(?i)19[- ]year remote",
