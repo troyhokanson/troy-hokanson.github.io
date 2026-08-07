@@ -32,10 +32,11 @@ class PortfolioHealthTests(unittest.TestCase):
 
     def test_privacy_contract_uses_generic_license_detection(self):
         contract_path = ROOT / "portfolio_contract.json"
-        source = contract_path.read_text(encoding="utf-8")
-        self.assertNotIn("14790", source)
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
 
-        contract = json.loads(source)
+        for pattern in contract["forbidden_patterns"]:
+            self.assertIsNone(re.search(r"\d{4,}", pattern))
+
         self.assertTrue(any(
             re.search(pattern, "Minnesota license #12345")
             for pattern in contract["forbidden_patterns"]
