@@ -5,7 +5,8 @@ on:
     branches: [main]
   pull_request:
   schedule:
-    - cron: "15 0,12 * * *"
+    # Run both possible UTC offsets, then gate on Central time so DST cannot drift.
+    - cron: "15 0,1,12,13 * * *"
   workflow_dispatch:
 
 permissions:
@@ -17,7 +18,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  schedule-gate:
+    runs-on: ubuntu-latest
+    outputs:
+      should-run: ${{ steps.gate.outputs.should-run }}
+    steps:
+      - name: Gate scheduled runs to 7:15 AM/PM Central
+        id: gate
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" != "schedule" ]]; then
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          local_hour="$(TZ=America/Chicago date +%H)"
+          if [[ "$local_hour" == "07" || "$local_hour" == "19" ]]; then
+            echo "should-run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should-run=false" >> "$GITHUB_OUTPUT"
+          fi
+
   diagnose:
+    needs: schedule-gate
+    if: needs.schedule-gate.outputs.should-run == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
