@@ -1,5 +1,7 @@
 import importlib.util
+import json
 from pathlib import Path
+import re
 import unittest
 
 
@@ -27,6 +29,24 @@ class PortfolioHealthTests(unittest.TestCase):
         self.assertIn('== "07"', source)
         self.assertIn('== "19"', source)
         self.assertIn("needs: schedule-gate", source)
+
+    def test_privacy_contract_uses_generic_license_detection(self):
+        contract_path = ROOT / "portfolio_contract.json"
+        contract = json.loads(contract_path.read_text(encoding="utf-8"))
+
+        for pattern in contract["forbidden_patterns"]:
+            self.assertIsNone(re.search(r"\d{4,}", pattern))
+
+        samples = (
+            "Minnesota license #12345",
+            "Minnesota License Number: 12345",
+            "Minnesota License #: 12345",
+        )
+        for sample in samples:
+            self.assertTrue(any(
+                re.search(pattern, sample)
+                for pattern in contract["forbidden_patterns"]
+            ))
 
 
 if __name__ == "__main__":
