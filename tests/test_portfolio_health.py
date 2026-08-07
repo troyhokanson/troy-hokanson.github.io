@@ -37,10 +37,16 @@ class PortfolioHealthTests(unittest.TestCase):
         for pattern in contract["forbidden_patterns"]:
             self.assertIsNone(re.search(r"\d{4,}", pattern))
 
-        self.assertTrue(any(
-            re.search(pattern, "Minnesota license #12345")
-            for pattern in contract["forbidden_patterns"]
-        ))
+        samples = (
+            "Minnesota license #12345",
+            "Minnesota License Number: 12345",
+            "Minnesota License #: 12345",
+        )
+        for sample in samples:
+            self.assertTrue(any(
+                re.search(pattern, sample)
+                for pattern in contract["forbidden_patterns"]
+            ))
 
 
 if __name__ == "__main__":
